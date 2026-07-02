@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buku Kas — Catatan Keuangan Pribadi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F7F4EA;
+    --paper-edge: #EDE8D8;
+    --line: #C6D3BC;
+    --line-strong: #A9BC9C;
+    --ink: #202A2E;
+    --ink-soft: #62706B;
+    --income: #2F6B4F;
+    --income-bg: #E4EFE6;
+    --expense: #A6402F;
+    --expense-bg: #F5E7E2;
+    --gold: #B8935A;
+    --bg: #DCE6D3;
+    --bg-dark: #C7D5BC;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 2px, transparent 2px, transparent 14px),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-dark) 100%);
+    font-family: 'Inter', sans-serif;
+    color: var(--ink);
+    padding: 28px 14px 60px;
+    display:flex;
+    justify-content:center;
+  }
+  .wrap{ width:100%; max-width: 480px; }
+
+  .masthead{
+    text-align:center;
+    margin-bottom:18px;
+    color:#3B4A3E;
+  }
+  .masthead .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    opacity:0.65;
+  }
+  .masthead h1{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:30px;
+    margin:4px 0 2px;
+    letter-spacing:0.3px;
+  }
+  .masthead .sub{
+    font-size:13px;
+    opacity:0.7;
+  }
+
+  /* Ledger card with torn-paper top edge */
+  .ledger{
+    position:relative;
+    background: var(--paper);
+    border-radius: 3px;
+    box-shadow: 0 18px 40px -18px rgba(20,30,20,0.45), 0 2px 0 var(--paper-edge);
+    padding: 26px 18px 10px;
+    margin-top: 22px;
+  }
+  .ledger::before{
+    content:"";
+    position:absolute;
+    top:-11px; left:0; right:0; height:22px;
+    background:
+      radial-gradient(circle at 8px 11px, var(--bg-dark) 6px, transparent 7px) repeat-x;
+    background-size: 20px 22px;
+    background-position: 0 0;
+  }
+
+  .summary{
+    display:flex;
+    gap:8px;
+    margin-bottom:20px;
+  }
+  .sum-box{
+    flex:1;
+    text-align:center;
+    padding:10px 4px 12px;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .sum-box .lbl{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color: var(--ink-soft);
+    margin-bottom:4px;
+  }
+  .sum-box .val{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:15px;
+  }
+  .sum-box.in .val{ color: var(--income); }
+  .sum-box.out .val{ color: var(--expense); }
+  .sum-box.saldo .val{ font-size:16px; }
+
+  form{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+    padding-bottom:18px;
+    border-bottom: 2px dashed var(--line-strong);
+    margin-bottom: 16px;
+  }
+  form .full{ grid-column: 1 / -1; }
+  label{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color: var(--ink-soft);
+    margin-bottom:4px;
+  }
+  input, select{
+    width:100%;
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    padding:9px 10px;
+    border:1px solid var(--line-strong);
+    border-radius:4px;
+    background:#fff;
+    color:var(--ink);
+  }
+  input:focus, select:focus{
+    outline:2px solid var(--gold);
+    outline-offset:1px;
+  }
+  .jenis-toggle{
+    display:flex;
+    gap:8px;
+  }
+  .jenis-toggle button{
+    flex:1;
+    padding:9px 6px;
+    border-radius:4px;
+    border:1px solid var(--line-strong);
+    background:#fff;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:13px;
+    cursor:pointer;
+    color: var(--ink-soft);
+  }
+  .jenis-toggle button.active-masuk{
+    background: var(--income-bg);
+    border-color: var(--income);
+    color: var(--income);
+  }
+  .jenis-toggle button.active-keluar{
+    background: var(--expense-bg);
+    border-color: var(--expense);
+    color: var(--expense);
+  }
+  .btn-tambah{
+    grid-column: 1 / -1;
+    background: var(--ink);
+    color: #F7F4EA;
+    border:none;
+    border-radius:4px;
+    padding:11px;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    letter-spacing:0.3px;
+  }
+  .btn-tambah:active{ opacity:0.85; }
+
+  .list-head{
+    display:grid;
+    grid-template-columns: 52px 1fr 74px 26px;
+    gap:8px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color: var(--ink-soft);
+    padding: 0 2px 6px;
+  }
+  .entries{
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0px, transparent 43px, var(--line) 43px, var(--line) 44px
+    );
+  }
+  .entry{
+    display:grid;
+    grid-template-columns: 52px 1fr 74px 26px;
+    gap:8px;
+    align-items:center;
+    padding: 10px 2px;
+    min-height: 34px;
+  }
+  .entry .tgl{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color: var(--ink-soft);
+    line-height:1.2;
+  }
+  .entry .ket{
+    font-size:13px;
+    line-height:1.25;
+  }
+  .entry .kat{
+    display:block;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    color: var(--gold);
+    margin-top:1px;
+  }
+  .entry .jml{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:12.5px;
+    text-align:right;
+    white-space:nowrap;
+  }
+  .entry .jml.masuk{ color: var(--income); }
+  .entry .jml.keluar{ color: var(--expense); }
+  .entry .del{
+    background:none;
+    border:none;
+    color:#B7B0A0;
+    font-size:16px;
+    cursor:pointer;
+    padding:0;
+    line-height:1;
+  }
+  .entry .del:hover{ color: var(--expense); }
+
+  .empty{
+    text-align:center;
+    padding: 30px 10px 26px;
+    color: var(--ink-soft);
+    font-size:13px;
+  }
+  .empty .stamp{
+    font-family:'Fraunces', serif;
+    font-size:15px;
+    color: var(--gold);
+    border: 1.5px solid var(--gold);
+    display:inline-block;
+    padding: 4px 14px;
+    border-radius: 3px;
+    transform: rotate(-3deg);
+    margin-bottom:10px;
+    letter-spacing:1px;
+  }
+
+  .footer-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding: 12px 2px 4px;
+    font-size:11px;
+    color: var(--ink-soft);
+  }
+  .footer-bar button{
+    background:none;
+    border:none;
+    color:#95352A;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    cursor:pointer;
+    text-decoration:underline;
+    padding:0;
+  }
+  .status{
+    text-align:center;
+    font-size:12px;
+    color: var(--ink-soft);
+    padding: 30px 0;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <div class="eyebrow">Buku Kas Harian</div>
+    <h1>Catatan Keuangan</h1>
+    <div class="sub">Tanggal terisi otomatis — kamu tinggal catat</div>
+  </div>
+
+  <div class="ledger">
+    <div class="summary">
+      <div class="sum-box in">
+        <div class="lbl">Masuk</div>
+        <div class="val" id="totalMasuk">Rp 0</div>
+      </div>
+      <div class="sum-box out">
+        <div class="lbl">Keluar</div>
+        <div class="val" id="totalKeluar">Rp 0</div>
+      </div>
+      <div class="sum-box saldo">
+        <div class="lbl">Saldo</div>
+        <div class="val" id="totalSaldo">Rp 0</div>
+      </div>
+    </div>
+
+    <form id="form">
+      <div class="full">
+        <label for="tanggal">Tanggal</label>
+        <input type="date" id="tanggal" required>
+      </div>
+      <div class="full">
+        <label for="keterangan">Keterangan</label>
+        <input type="text" id="keterangan" placeholder="mis. Bayar warnet, gaji freelance" required>
+      </div>
+      <div>
+        <label for="kategori">Kategori</label>
+        <select id="kategori">
+          <option>Makan</option>
+          <option>Transport</option>
+          <option>Belajar</option>
+          <option>Freelance</option>
+          <option>Kebutuhan Harian</option>
+          <option>Lainnya</option>
+        </select>
+      </div>
+      <div>
+        <label for="jumlah">Jumlah (Rp)</label>
+        <input type="number" id="jumlah" placeholder="0" min="0" required>
+      </div>
+      <div class="full">
+        <label>Jenis</label>
+        <div class="jenis-toggle">
+          <button type="button" id="btnMasuk" class="active-masuk">↓ Masuk</button>
+          <button type="button" id="btnKeluar">↑ Keluar</button>
+        </div>
+      </div>
+      <button type="submit" class="btn-tambah">+ Tambah Catatan</button>
+    </form>
+
+    <div class="list-head">
+      <span>Tgl</span><span>Keterangan</span><span style="text-align:right">Jumlah</span><span></span>
+    </div>
+    <div class="entries" id="entries">
+      <div class="status" id="status">Memuat catatan...</div>
+    </div>
+
+    <div class="footer-bar">
+      <span id="jumlahCatatan"></span>
+      <button id="btnReset" type="button">hapus semua catatan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let entries = [];
+let jenisAktif = 'masuk';
+const STORAGE_KEY = 'catatan-kas-entries';
+
+const tanggalInput = document.getElementById('tanggal');
+const form = document.getElementById('form');
+const entriesEl = document.getElementById('entries');
+const statusEl = document.getElementById('status');
+const btnMasuk = document.getElementById('btnMasuk');
+const btnKeluar = document.getElementById('btnKeluar');
+const btnReset = document.getElementById('btnReset');
+
+function todayStr(){
+  const d = new Date();
+  const off = d.getTimezoneOffset();
+  const local = new Date(d.getTime() - off*60000);
+  return local.toISOString().slice(0,10);
+}
+
+function setTanggalHariIni(){
+  tanggalInput.value = todayStr();
+}
+setTanggalHariIni();
+
+function formatRp(n){
+  return 'Rp ' + Math.round(n).toLocaleString('id-ID');
+}
+
+function formatTglTampil(iso){
+  const [y,m,d] = iso.split('-');
+  const bulan = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  return d + ' ' + bulan[parseInt(m,10)-1];
+}
+
+btnMasuk.addEventListener('click', () => {
+  jenisAktif = 'masuk';
+  btnMasuk.classList.add('active-masuk');
+  btnKeluar.classList.remove('active-keluar');
+});
+btnKeluar.addEventListener('click', () => {
+  jenisAktif = 'keluar';
+  btnKeluar.classList.add('active-keluar');
+  btnMasuk.classList.remove('active-masuk');
+});
+
+async function loadEntries(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    entries = res ? JSON.parse(res.value) : [];
+  }catch(e){
+    entries = [];
+  }
+  render();
+}
+
+async function saveEntries(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(entries), false);
+  }catch(e){
+    console.error('Gagal menyimpan:', e);
+  }
+}
+
+function render(){
+  const sorted = [...entries].sort((a,b) => a.tanggal.localeCompare(b.tanggal) || a.id - b.id);
+
+  let masuk = 0, keluar = 0;
+  entries.forEach(e => e.jenis === 'masuk' ? masuk += e.jumlah : keluar += e.jumlah);
+  document.getElementById('totalMasuk').textContent = formatRp(masuk);
+  document.getElementById('totalKeluar').textContent = formatRp(keluar);
+  document.getElementById('totalSaldo').textContent = formatRp(masuk - keluar);
+  document.getElementById('jumlahCatatan').textContent = entries.length + ' catatan';
+
+  if(sorted.length === 0){
+    entriesEl.innerHTML = '<div class="empty"><div class="stamp">KOSONG</div><br>Belum ada catatan. Tambahkan yang pertama di atas.</div>';
+    return;
+  }
+
+  entriesEl.innerHTML = sorted.slice().reverse().map(e => `
+    <div class="entry">
+      <div class="tgl">${formatTglTampil(e.tanggal)}</div>
+      <div class="ket">${escapeHtml(e.keterangan)}<span class="kat">${escapeHtml(e.kategori)}</span></div>
+      <div class="jml ${e.jenis}">${e.jenis === 'masuk' ? '+' : '−'} ${formatRp(e.jumlah).replace('Rp ','')}</div>
+      <button class="del" data-id="${e.id}" title="Hapus">✕</button>
+    </div>
+  `).join('');
+
+  entriesEl.querySelectorAll('.del').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = Number(btn.dataset.id);
+      entries = entries.filter(e => e.id !== id);
+      await saveEntries();
+      render();
+    });
+  });
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+form.addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const keterangan = document.getElementById('keterangan').value.trim();
+  const kategori = document.getElementById('kategori').value;
+  const jumlah = parseFloat(document.getElementById('jumlah').value);
+  const tanggal = tanggalInput.value;
+
+  if(!keterangan || !jumlah || jumlah <= 0) return;
+
+  entries.push({
+    id: Date.now(),
+    tanggal,
+    keterangan,
+    kategori,
+    jumlah,
+    jenis: jenisAktif
+  });
+
+  await saveEntries();
+  render();
+
+  form.reset();
+  setTanggalHariIni();
+  jenisAktif = 'masuk';
+  btnMasuk.classList.add('active-masuk');
+  btnKeluar.classList.remove('active-keluar');
+  document.getElementById('keterangan').focus();
+});
+
+btnReset.addEventListener('click', async () => {
+  if(entries.length === 0) return;
+  if(confirm('Yakin mau hapus semua catatan? Tidak bisa dikembalikan.')){
+    entries = [];
+    await saveEntries();
+    render();
+  }
+});
+
+loadEntries();
+</script>
+</body>
+</html>
